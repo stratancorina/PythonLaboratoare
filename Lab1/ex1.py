@@ -1,5 +1,7 @@
 # Find The greatest common divisor of multiple numbers read from the console.
-
+'''
+aici ar trebui validat input ul, in rest e ok
+'''
 def gcd(x, y):
     if y == 0:
         return abs(x)
