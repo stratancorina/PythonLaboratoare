@@ -1,5 +1,7 @@
 # Write a script that calculates how many vowels are in a string.
-
+'''
+aici ar trebui sa te uiti si dupa majuscule
+'''
 
 def number_of_vowels(string):
     vowels = 'aeiou'
