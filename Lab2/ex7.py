@@ -1,6 +1,8 @@
 numbers = [10, 11, 23, 333, 44, 90]
 
-
+'''
+puteai sa faci len(palinodromes) la final in loc sa ai o variabla pt len
+'''
 def find(nums):
     palindromes = []
     result1 = 0
