@@ -1,6 +1,8 @@
 # Write a function that receives as parameter
 # a matrix and will return the matrix obtained by replacing all the elements under the main diagonal with 0
-
+'''
+aici trebuie sub diagonala principala sa pui 0, nu sa pui pe diagonale 0 =)
+'''
 def zero(mat, n, m):
     for i in range(n):
         for j in range(m):
