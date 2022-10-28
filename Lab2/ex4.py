@@ -1,3 +1,6 @@
+'''
+era usor sa te folosesti de '%' pt pozitii
+'''
 def ex4(note, poz, start):
     res = [note[start]]  # listarta goala
     n = len(note)  # lungimea listei cu note
