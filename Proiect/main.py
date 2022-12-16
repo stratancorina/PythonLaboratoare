@@ -220,8 +220,6 @@ if __name__ == '__main__':
                         deletePassword()
                     # else:
                     #     print("Wrong password. Try again")
-                elif option == "test":
-                    username_exists('https://www.instagram.com')
                 elif option == "update":
                     # if checkMasterPassword():
                         updatePassword()
