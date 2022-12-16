@@ -1,5 +1,7 @@
 import os.path
 from cryptography.fernet import Fernet
+import re
+
 
 
 def create_key(p):
@@ -9,6 +11,7 @@ def create_key(p):
 
 
 def load_key(p):
+    # create_key(p)
     with open(p, "rb") as f:
         key = f.read()
     return key
@@ -34,20 +37,69 @@ def checkMasterPassword():  # function to check the master password
         return False
 
 
+def isValidURL(str):
+    regex = ("((http|https)://)(www.)?" +
+             "[a-zA-Z0-9@:%._\\+~#?&//=]" +
+             "{2,256}\\.[a-z]" +
+             "{2,6}\\b([-a-zA-Z0-9@:%" +
+             "._\\+~#?&//=]*)")
+
+    p = re.compile(regex)
+    if str == None:
+        return False
+
+    if re.search(p, str):
+        return True
+    else:
+        return False
+
+
+def site_exists(str):
+    with open('pwmanager.db', 'r+') as f:
+        lines = [line.strip() for line in f.readlines()]
+        if str in lines:
+            return True
+        else:
+            return False
+
+
+def username_exists(str):
+    with open('pwmanager.db', 'r+') as f:
+        lines = [line.strip() for line in f.readlines()]
+        i = lines.index(str)
+        if str in lines:
+            return lines[i+1]
+        else:
+            return ("False")
+
+
 def appendNew():  # This function will append new password in the txt file
-    file = open("pwmanager.db", 'a')
+    file = open("pwmanager.db", 'a+')
     website = input("Website: ")
-    userName = input("Username: ")
-    password = input("Password: ")
-    web = website + "\n"
-    usr = userName + "\n"
-    pwd = Fernet(key).encrypt(password.encode()).decode()
-    file.write("-\n")
-    file.write(web)
-    file.write(usr)
-    file.write(pwd)
-    file.close
-    print("Done!")
+    if isValidURL(website):
+        if site_exists(website):
+            print("This site already exists with an inserted password with the username: ")
+            print(str(username_exists(website)))
+            answ = input("Do you want to update it? (y/n)")
+            if answ == "y":
+                updateExisting(website)
+            else:
+                pass
+        else:
+            userName = input("Username: ")
+            password = input("Password: ")
+            web = website + "\n"
+            usr = userName + "\n"
+            pwd = Fernet(key).encrypt(password.encode()).decode()
+            file.write("\n")
+            file.write(web)
+            file.write(usr)
+            file.write(pwd)
+            file.close
+            print("Done!")
+    else:
+        print("Site is not valid. Try again!")
+        appendNew()
 
 
 def replace_line(file_name, line_num, text):
@@ -58,16 +110,32 @@ def replace_line(file_name, line_num, text):
     out.close()
 
 
+def updateExisting(site):
+    with open('pwmanager.db', 'r+') as f:
+        lines = [line.strip() for line in f.readlines()]
+        i = lines.index(site)
+        new_password = input("Insert the new password: ")
+        new_pwd = Fernet(key).encrypt(new_password.encode()).decode() + "\n"
+        index = i + 2
+        replace_line('pwmanager.db', index, new_pwd)
+        print("Done!")
+
+
 def updatePassword():
     with open('pwmanager.db', 'r+') as f:
         lines = [line.strip() for line in f.readlines()]
         try:
-            i = lines.index(input('Enter site: '))
-            new_password = input("Insert the new password: ")
-            new_pwd = Fernet(key).encrypt(new_password.encode()).decode()
-            index = i + 2
-            replace_line('pwmanager.db', index, new_pwd)
-            print("Done!")
+            site = input('Enter site: ')
+            if isValidURL(site):
+                i = lines.index(site)
+                new_password = input("Insert the new password: ")
+                new_pwd = Fernet(key).encrypt(new_password.encode()).decode()
+                index = i + 2
+                replace_line('pwmanager.db', index, new_pwd)
+                print("Done!")
+            else:
+                print("Site is not valid. Try again!")
+                updatePassword()
         except ValueError:
             print('Site not found!')
 
@@ -78,11 +146,11 @@ def remove_line(linetoskip):
     currentLine = 1
     with open('pwmanager.db', 'w') as write_file:
         for line in lines:
-            if currentLine == linetoskip:
-                pass
-            elif currentLine == linetoskip + 1:
+            if currentLine == linetoskip + 1:
                 pass
             elif currentLine == linetoskip + 2:
+                pass
+            elif currentLine == linetoskip + 3:
                 pass
             else:
                 write_file.write(line)
@@ -93,9 +161,14 @@ def deletePassword():
     with open('pwmanager.db', 'r') as f:
         lines = [line.strip() for line in f.readlines()]
     try:
-        i = lines.index(input('Enter site: '))
-        remove_line(i)
-        print("Done!")
+        site = input('Enter site: ')
+        if isValidURL(site):
+            i = lines.index(site)
+            remove_line(i)
+            print("Done!")
+        else:
+            print("Site is not valid. Try again!")
+            deletePassword()
     except ValueError:
         print('Site not found!')
 
@@ -104,20 +177,23 @@ def getPassword():
     with open('pwmanager.db', 'r') as f:
         lines = [line.strip() for line in f.readlines()]
         try:
-            i = lines.index(input('Enter site: '))
-            print("website: " + lines[i])
-            print("username: " + lines[i + 1])
-            password_to_decrypt = lines[i + 2]
-            decrypt_password = Fernet(key).decrypt(password_to_decrypt.encode()).decode()
-            print("password: " + decrypt_password)
+            site = input('Enter site: ')
+            if isValidURL(site):
+                i = lines.index(site)
+                print("website: " + lines[i])
+                print("username: " + lines[i + 1])
+                password_to_decrypt = lines[i + 2]
+                decrypt_password = Fernet(key).decrypt(password_to_decrypt.encode()).decode()
+                print("password: " + decrypt_password)
+            else:
+                print("Site is not valid. Try again!")
+                getPassword()
         except ValueError:
             print('Site not found!')
 
 
 if __name__ == '__main__':
     key = load_key("thekey.key")
-    password_file = None
-    password_dict = {}
     path = "pwmanager.db"
     print('Welcome to your Password Manager!')
     logged = True
@@ -144,6 +220,8 @@ if __name__ == '__main__':
                         deletePassword()
                     # else:
                     #     print("Wrong password. Try again")
+                elif option == "test":
+                    username_exists('https://www.instagram.com')
                 elif option == "update":
                     # if checkMasterPassword():
                         updatePassword()
